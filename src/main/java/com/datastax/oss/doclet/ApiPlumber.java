@@ -83,7 +83,6 @@ public class ApiPlumber {
       String classTypeName = clazz.qualifiedTypeName();
 
       for (Type interfaceType : clazz.interfaceTypes()) {
-        System.out.println(interfaceType.asClassDoc());
         if (clazz.tags(EXCLUDE_TAG_NAME).length == 0) {
           String interfaceTypeName = interfaceType.qualifiedTypeName();
           checkAllowed(
