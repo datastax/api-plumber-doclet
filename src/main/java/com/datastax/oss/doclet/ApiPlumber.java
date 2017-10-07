@@ -62,10 +62,8 @@ public class ApiPlumber {
   private static Set<String> parseForbiddenPackages(String[][] options) {
     Set<String> result = new HashSet<>();
     for (String[] option : options) {
-      String name = option[0];
-      String value = option[1];
-      if (name.equals(FORBIDDEN_PACKAGE_OPTION)) {
-        result.add(value);
+      if (option[0].equals(FORBIDDEN_PACKAGE_OPTION)) {
+        result.add(option[1]);
       }
     }
     return result;
