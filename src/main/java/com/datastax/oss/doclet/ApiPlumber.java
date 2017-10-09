@@ -157,7 +157,9 @@ public class ApiPlumber {
       }
 
       for (ConstructorDoc constructor : clazz.constructors()) {
-        checkParametersAllowed(constructor);
+        if (constructor.tags(EXCLUDE_TAG_NAME).length == 0) {
+          checkParametersAllowed(constructor);
+        }
       }
     }
     if (errorCount > 0) {
