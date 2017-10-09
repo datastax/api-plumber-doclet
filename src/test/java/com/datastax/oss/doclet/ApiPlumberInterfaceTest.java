@@ -23,12 +23,22 @@ public class ApiPlumberInterfaceTest extends ApiPlumberTestBase {
 
   @Test
   public void should_fail_if_class_implements_interface_from_forbidden_package() {
-    DocletResult result =
-        runDoclet("src/test/java/samples/Interfaces.java", "java.util.function", "java.math");
+    DocletResult result = runDoclet("src/test/java/samples/Interfaces.java", "java.util.function");
     assertThat(result.returnCode).isNotEqualTo(0);
     assertThat(result.errorOutput)
         .contains(
             "Type samples.Interfaces.StringIdentity leaks java.util.function.Function (as a parent interface)",
+            "Found 1 error");
+  }
+
+  @Test
+  public void
+      should_fail_if_class_implements_interface_with_type_argument_from_forbidden_package() {
+    DocletResult result = runDoclet("src/test/java/samples/Interfaces.java", "java.math");
+    assertThat(result.returnCode).isNotEqualTo(0);
+    assertThat(result.errorOutput)
+        .contains(
+            "Type samples.Interfaces.BigDecimalComparator leaks java.math.BigDecimal (as a type argument of its parent interface java.util.Comparator)",
             "Found 1 error");
   }
 }

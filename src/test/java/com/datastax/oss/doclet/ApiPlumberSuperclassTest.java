@@ -27,7 +27,17 @@ public class ApiPlumberSuperclassTest extends ApiPlumberTestBase {
     assertThat(result.returnCode).isNotEqualTo(0);
     assertThat(result.errorOutput)
         .contains(
-            "Type samples.Superclasses.StringEntry leaks java.util.AbstractMap.SimpleEntry (as a superclass)",
+            "Type samples.Superclasses.BigDecimalList leaks java.util.AbstractList (as a superclass)",
+            "Found 1 error");
+  }
+
+  @Test
+  public void should_fail_if_class_extends_superclass_with_type_argument_from_forbidden_package() {
+    DocletResult result = runDoclet("src/test/java/samples/Superclasses.java", "java.math");
+    assertThat(result.returnCode).isNotEqualTo(0);
+    assertThat(result.errorOutput)
+        .contains(
+            "Type samples.Superclasses.BigDecimalList leaks java.math.BigDecimal (as a type argument of its superclass java.util.AbstractList)",
             "Found 1 error");
   }
 }

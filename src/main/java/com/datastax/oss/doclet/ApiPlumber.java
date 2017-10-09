@@ -20,8 +20,10 @@ import com.sun.javadoc.ConstructorDoc;
 import com.sun.javadoc.DocErrorReporter;
 import com.sun.javadoc.ExecutableMemberDoc;
 import com.sun.javadoc.FieldDoc;
+import com.sun.javadoc.LanguageVersion;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Parameter;
+import com.sun.javadoc.ParameterizedType;
 import com.sun.javadoc.RootDoc;
 import com.sun.javadoc.Type;
 import java.util.HashSet;
@@ -34,6 +36,10 @@ public class ApiPlumber {
 
   /** The javadoc tag that causes the tool to ignore an element. */
   private static final String EXCLUDE_TAG_NAME = "leaks-private-api";
+
+  public static LanguageVersion languageVersion() {
+    return LanguageVersion.JAVA_1_5;
+  }
 
   public static int optionLength(String option) {
     switch (option) {
@@ -90,25 +96,42 @@ public class ApiPlumber {
               "Type %s leaks %s (as a parent interface)%n",
               classTypeName,
               interfaceTypeName);
-          // TODO check type arguments in implemented interfaces as in `Foo implements Comparable<ForbiddenType>`
-          // For some reason, even if interfaceType is a GenericType, its typeArguments() are still
-          // empty, I don't know how else to get them, but there must be a way since the standard
-          // doclet prints them in the "implements" section.
-          // (In most cases this should be caught anyway, because the type arguments are most likely
-          // used elsewhere as parameter or return types.)
+
+          if (interfaceType instanceof ParameterizedType) {
+            for (Type type : interfaceType.asParameterizedType().typeArguments()) {
+              String typeArgumentName = type.qualifiedTypeName();
+              checkAllowed(
+                  typeArgumentName,
+                  "Type %s leaks %s (as a type argument of its parent interface %s)%n",
+                  classTypeName,
+                  typeArgumentName,
+                  interfaceTypeName);
+            }
+          }
         }
       }
 
-      Type superClassType = clazz.superclassType();
-      if (superClassType != null) {
-        String superclassTypeName = superClassType.qualifiedTypeName();
+      Type superclassType = clazz.superclassType();
+      if (superclassType != null) {
+        String superclassTypeName = superclassType.qualifiedTypeName();
         if (clazz.tags(EXCLUDE_TAG_NAME).length == 0) {
           checkAllowed(
               superclassTypeName,
               "Type %s leaks %s (as a superclass)%n",
               classTypeName,
               superclassTypeName);
-          // TODO check type arguments in superclass (same as interfaces above)
+
+          if (superclassType instanceof ParameterizedType) {
+            for (Type type : superclassType.asParameterizedType().typeArguments()) {
+              String typeArgumentName = type.qualifiedTypeName();
+              checkAllowed(
+                  typeArgumentName,
+                  "Type %s leaks %s (as a type argument of its superclass %s)%n",
+                  classTypeName,
+                  typeArgumentName,
+                  superclassTypeName);
+            }
+          }
         }
       }
 

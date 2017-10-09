@@ -15,21 +15,13 @@
  */
 package samples;
 
-import java.util.AbstractMap;
+import java.math.BigDecimal;
+import java.util.AbstractList;
 
 public class Superclasses {
 
-  public class StringEntry extends AbstractMap.SimpleEntry<String, String> {
-    public StringEntry(String key, String value) {
-      super(key, value);
-    }
-  }
+  public abstract class BigDecimalList extends AbstractList<BigDecimal> {}
 
   /** @leaks-private-api */
-  public class AnnotatedStringEntry extends AbstractMap.SimpleEntry<String, String> {
-    /** @leaks-private-api */
-    public AnnotatedStringEntry(String key, String value) {
-      super(key, value);
-    }
-  }
+  public abstract class AnnotatedBigDecimalList extends AbstractList<BigDecimal> {}
 }
