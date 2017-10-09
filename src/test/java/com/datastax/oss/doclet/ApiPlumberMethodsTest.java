@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiPlumberMethodsTest extends ApiPlumberTestBase {
 
   @Test
-  public void should_fail_if_class_extends_superclass_from_forbidden_package() {
+  public void should_fail_if_method_uses_type_from_forbidden_package() {
     DocletResult result = runDoclet("src/test/java/samples/Methods.java", "java.math");
     assertThat(result.returnCode).isNotEqualTo(0);
     assertThat(result.errorOutput)
