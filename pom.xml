@@ -21,7 +21,7 @@
 
   <groupId>com.datastax.oss</groupId>
   <artifactId>api-plumber-doclet</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
 
   <name>API Plumber</name>
   <description>A custom doclet to check that an API doesn't leak a set of "forbidden" packages.
@@ -284,7 +284,7 @@ limitations under the License.]]>
     <connection>scm:git:git@github.com:datastax/api-plumber-doclet.git</connection>
     <developerConnection>scm:git:git@github.com:datastax/api-plumber-doclet.git</developerConnection>
     <url>https://github.com/datastax/api-plumber-doclet</url>
-    <tag>1.0.0</tag>
+    <tag>HEAD</tag>
   </scm>
   <developers>
     <developer>
