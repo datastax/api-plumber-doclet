@@ -16,14 +16,12 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.datastax.oss</groupId>
   <artifactId>api-plumber-doclet</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 
   <name>API Plumber</name>
   <description>A custom doclet to check that an API doesn't leak a set of "forbidden" packages.
@@ -286,7 +284,7 @@ limitations under the License.]]>
     <connection>scm:git:git@github.com:datastax/api-plumber-doclet.git</connection>
     <developerConnection>scm:git:git@github.com:datastax/api-plumber-doclet.git</developerConnection>
     <url>https://github.com/datastax/api-plumber-doclet</url>
-    <tag>HEAD</tag>
+    <tag>1.0.0</tag>
   </scm>
   <developers>
     <developer>
