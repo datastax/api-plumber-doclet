@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.doclet;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -24,8 +26,6 @@ import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.PumpStreamHandler;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class ApiPlumberTestBase {
 
