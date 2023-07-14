@@ -27,8 +27,13 @@ public class ApiPlumberSuperclassTest extends ApiPlumberTestBase {
     assertThat(result.returnCode).isNotEqualTo(0);
     assertThat(result.errorOutput)
         .contains(
-            "Type samples.Superclasses.BigDecimalList leaks java.util.AbstractList (as a superclass)",
-            "Found 1 error");
+            "Type samples.Superclasses.PublicBigDecimalList leaks java.util.AbstractList (as a superclass)",
+            "Type samples.Superclasses.PublicBigDecimalListList leaks java.util.AbstractList (as a superclass)",
+            "Type samples.Superclasses.PublicBigDecimalListList leaks java.util.AbstractList (as a type argument of its superclass java.util.AbstractList)",
+            "Type samples.Superclasses.ProtectedBigDecimalList leaks java.util.AbstractList (as a superclass)",
+            "Type samples.Superclasses.ProtectedBigDecimalListList leaks java.util.AbstractList (as a superclass)",
+            "Type samples.Superclasses.ProtectedBigDecimalListList leaks java.util.AbstractList (as a type argument of its superclass java.util.AbstractList)",
+            "Found 6 errors");
   }
 
   @Test
@@ -37,7 +42,8 @@ public class ApiPlumberSuperclassTest extends ApiPlumberTestBase {
     assertThat(result.returnCode).isNotEqualTo(0);
     assertThat(result.errorOutput)
         .contains(
-            "Type samples.Superclasses.BigDecimalList leaks java.math.BigDecimal (as a type argument of its superclass java.util.AbstractList)",
-            "Found 1 error");
+            "Type samples.Superclasses.PublicBigDecimalList leaks java.math.BigDecimal (as a type argument of its superclass java.util.AbstractList)",
+            "Type samples.Superclasses.ProtectedBigDecimalList leaks java.math.BigDecimal (as a type argument of its superclass java.util.AbstractList)",
+            "Found 2 errors");
   }
 }

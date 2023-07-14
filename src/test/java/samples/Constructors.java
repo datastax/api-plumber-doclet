@@ -19,10 +19,45 @@ import java.math.BigDecimal;
 
 public class Constructors {
 
-  public Constructors(String s) {}
+  /* public */
 
-  public Constructors(BigDecimal bd) {}
+  public static class PublicConstructors {
 
-  /** @leaks-private-api */
-  public Constructors(BigDecimal bd, boolean b) {}
+    public PublicConstructors(String s) {}
+
+    public PublicConstructors(BigDecimal bd) {}
+
+    /** @leaks-private-api */
+    public PublicConstructors(BigDecimal bd, boolean b) {}
+  }
+
+  /* protected */
+
+  public static class ProtectedConstructors {
+
+    protected ProtectedConstructors(String s) {}
+
+    protected ProtectedConstructors(BigDecimal bd) {}
+
+    /** @leaks-private-api */
+    protected ProtectedConstructors(BigDecimal bd, boolean b) {}
+  }
+
+  /* package-private */
+
+  public static class PackagePrivateConstructors {
+
+    PackagePrivateConstructors(String s) {}
+
+    PackagePrivateConstructors(BigDecimal bd) {}
+  }
+
+  /* private */
+
+  public static class PrivateConstructors {
+
+    private PrivateConstructors(String s) {}
+
+    private PrivateConstructors(BigDecimal bd) {}
+  }
 }

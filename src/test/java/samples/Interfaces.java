@@ -17,6 +17,7 @@ package samples;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
+import java.util.List;
 import java.util.function.Function;
 
 public class Interfaces {
@@ -41,4 +42,14 @@ public class Interfaces {
 
   /** @leaks-private-api */
   public interface AnnotatedBigDecimalComparator extends Comparator<BigDecimal> {}
+
+  public interface BigDecimalListOfComparator extends Comparator<List<BigDecimal>> {}
+
+  /** @leaks-private-api */
+  public interface AnnotatedBigDecimalListOfComparator extends Comparator<List<BigDecimal>> {}
+
+  /* check recursive types */
+  public interface Builder<T> { }
+  public interface MiddleBuilder<T> extends Builder<T> { }
+  public interface TopLevelBuilder extends MiddleBuilder<TopLevelBuilder> { }
 }

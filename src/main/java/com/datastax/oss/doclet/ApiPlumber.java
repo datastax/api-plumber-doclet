@@ -98,15 +98,7 @@ public class ApiPlumber {
               interfaceTypeName);
 
           if (interfaceType instanceof ParameterizedType) {
-            for (Type type : interfaceType.asParameterizedType().typeArguments()) {
-              String typeArgumentName = type.qualifiedTypeName();
-              checkAllowed(
-                  typeArgumentName,
-                  "Type %s leaks %s (as a type argument of its parent interface %s)%n",
-                  classTypeName,
-                  typeArgumentName,
-                  interfaceTypeName);
-            }
+            checkTypeParametersAllowed(interfaceType, classTypeName);
           }
         }
       }
@@ -188,6 +180,23 @@ public class ApiPlumber {
           name,
           parameterTypeName,
           parameter.name());
+    }
+  }
+
+  private void checkTypeParametersAllowed(Type interfaceType, String classTypeName) {
+    System.err.println(interfaceType.qualifiedTypeName());
+    for (Type type : interfaceType.asParameterizedType().typeArguments()) {
+      String typeArgumentName = type.qualifiedTypeName();
+      checkAllowed(
+          typeArgumentName,
+          "Type %s leaks %s (as a type argument of its parent interface %s)%n",
+          classTypeName,
+          typeArgumentName,
+          interfaceType.qualifiedTypeName());
+
+      if (type instanceof ParameterizedType) {
+        checkTypeParametersAllowed(type, classTypeName);
+      }
     }
   }
 }

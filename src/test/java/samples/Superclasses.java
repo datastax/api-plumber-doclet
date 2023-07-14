@@ -20,8 +20,42 @@ import java.util.AbstractList;
 
 public class Superclasses {
 
-  public abstract class BigDecimalList extends AbstractList<BigDecimal> {}
+  /* public */
+
+  public abstract class PublicBigDecimalList extends AbstractList<BigDecimal> {}
+
+  public abstract class PublicBigDecimalListList extends AbstractList<AbstractList<BigDecimal>> {}
 
   /** @leaks-private-api */
-  public abstract class AnnotatedBigDecimalList extends AbstractList<BigDecimal> {}
+  public abstract class PublicAnnotatedBigDecimalList extends AbstractList<BigDecimal> {}
+
+  /** @leaks-private-api */
+  public abstract class PublicAnnotatedBigDecimalListList
+      extends AbstractList<AbstractList<BigDecimal>> {}
+
+  /* protected */
+
+  protected abstract class ProtectedBigDecimalList extends AbstractList<BigDecimal> {}
+
+  protected abstract class ProtectedBigDecimalListList
+      extends AbstractList<AbstractList<BigDecimal>> {}
+
+  /** @leaks-private-api */
+  public abstract class ProtectedAnnotatedBigDecimalList extends AbstractList<BigDecimal> {}
+
+  /** @leaks-private-api */
+  public abstract class ProtectedAnnotatedBigDecimalListList
+      extends AbstractList<AbstractList<BigDecimal>> {}
+
+  /* package-private */
+
+  abstract class PackagePrivateBigDecimalList extends AbstractList<BigDecimal> {}
+
+  abstract class PackagePrivateBigDecimalListList extends AbstractList<AbstractList<BigDecimal>> {}
+
+  /* private */
+
+  abstract class PrivateBigDecimalList extends AbstractList<BigDecimal> {}
+
+  abstract class PrivateBigDecimalListList extends AbstractList<AbstractList<BigDecimal>> {}
 }

@@ -21,4 +21,8 @@ public class InnerClasses {
   public class Inner {
     public BigInteger bigInteger;
   }
+
+  public static class StaticInner {
+    public BigInteger bigInteger;
+  }
 }

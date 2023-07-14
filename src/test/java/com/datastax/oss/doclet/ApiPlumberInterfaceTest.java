@@ -39,6 +39,7 @@ public class ApiPlumberInterfaceTest extends ApiPlumberTestBase {
     assertThat(result.errorOutput)
         .contains(
             "Type samples.Interfaces.BigDecimalComparator leaks java.math.BigDecimal (as a type argument of its parent interface java.util.Comparator)",
-            "Found 1 error");
+            "Type samples.Interfaces.BigDecimalListOfComparator leaks java.math.BigDecimal (as a type argument of its parent interface java.util.List)",
+            "Found 2 errors");
   }
 }

@@ -19,13 +19,28 @@ import java.math.BigInteger;
 import java.util.UUID;
 
 public class Fields {
+
   public String string;
 
-  public BigInteger bigInteger;
+  /* public */
+
+  public BigInteger publicBigInteger;
+
+  /** @leaks-private-api */
+  public BigInteger publicAnnotatedBigInteger;
+
+  /* protected */
+
   protected BigInteger protectedBigInteger;
 
   /** @leaks-private-api */
-  public BigInteger annotatedBigInteger;
+  public BigInteger protectedAnnotatedBigInteger;
+
+  /* package-private */
+
+  UUID packagePrivateUuid;
+
+  /* private */
 
   private UUID privateUuid;
 }

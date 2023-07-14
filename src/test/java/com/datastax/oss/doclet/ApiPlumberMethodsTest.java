@@ -29,6 +29,8 @@ public class ApiPlumberMethodsTest extends ApiPlumberTestBase {
         .contains(
             "Method samples.Methods.leaksReturnType leaks java.math.BigDecimal (as its return type)",
             "Method samples.Methods.leaksParameter leaks java.math.BigDecimal (as parameter 'value')",
-            "Found 2 errors");
+            "Method samples.Methods.protectedLeaksReturnType leaks java.math.BigDecimal (as its return type)",
+            "Method samples.Methods.protectedLeaksParameter leaks java.math.BigDecimal (as parameter 'value')",
+            "Found 4 errors");
   }
 }

@@ -39,7 +39,7 @@ public class ApiPlumberFieldTest extends ApiPlumberTestBase {
     assertThat(result.returnCode).isNotEqualTo(0);
     assertThat(result.errorOutput)
         .contains(
-            "Field samples.Fields.bigInteger leaks java.math.BigInteger",
+            "Field samples.Fields.publicBigInteger leaks java.math.BigInteger",
             "Field samples.Fields.protectedBigInteger leaks java.math.BigInteger",
             "Found 2 errors");
   }

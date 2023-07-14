@@ -28,6 +28,7 @@ public class ApiPlumberInnerClassTest extends ApiPlumberTestBase {
     assertThat(result.errorOutput)
         .contains(
             "Field samples.InnerClasses.Inner.bigInteger leaks java.math.BigInteger",
-            "Found 1 error");
+            "Field samples.InnerClasses.StaticInner.bigInteger leaks java.math.BigInteger",
+            "Found 2 errors");
   }
 }

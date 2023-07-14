@@ -17,15 +17,53 @@ package samples;
 
 import java.math.BigDecimal;
 
-public interface Methods {
+public class Methods {
 
-  BigDecimal leaksReturnType();
+  /* public */
 
-  void leaksParameter(String key, BigDecimal value);
+  public BigDecimal leaksReturnType() {
+    return null;
+  }
+
+  public void leaksParameter(String key, BigDecimal value) {}
 
   /** @leaks-private-api */
-  BigDecimal annotatedReturnType();
+  public BigDecimal annotatedReturnType() {
+    return null;
+  }
 
   /** @leaks-private-api */
-  void annotatedParameter(String key, BigDecimal value);
+  public void annotatedParameter(String key, BigDecimal value) {}
+
+  /* protected */
+
+  protected BigDecimal protectedLeaksReturnType() {
+    return null;
+  }
+
+  protected void protectedLeaksParameter(String key, BigDecimal value) {}
+
+  /** @leaks-private-api */
+  protected BigDecimal protectedAnnotatedReturnType() {
+    return null;
+  }
+
+  /** @leaks-private-api */
+  protected void protectedAnnotatedParameter(String key, BigDecimal value) {}
+
+  /* package-private */
+
+  BigDecimal packagePrivateLeaksReturnType() {
+    return null;
+  }
+
+  void packagePrivateLeaksParameter(String key, BigDecimal value) {}
+
+  /* private */
+
+  BigDecimal privateLeaksReturnType() {
+    return null;
+  }
+
+  void privateLeaksParameter(String key, BigDecimal value) {}
 }
