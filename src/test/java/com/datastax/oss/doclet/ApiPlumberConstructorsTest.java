@@ -27,7 +27,7 @@ public class ApiPlumberConstructorsTest extends ApiPlumberTestBase {
     assertThat(result.returnCode).isNotEqualTo(0);
     assertThat(result.errorOutput)
         .contains(
-            "Constructor samples.Constructors leaks java.math.BigDecimal (as parameter 'bd')",
+            "Constructor samples.Constructors.<init> leaks java.math.BigDecimal (as parameter 'bd')",
             "Found 1 error");
   }
 }

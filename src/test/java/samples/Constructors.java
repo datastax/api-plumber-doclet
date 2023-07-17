@@ -19,6 +19,8 @@ import java.math.BigDecimal;
 
 public class Constructors {
 
+  public Constructors(int primitive) {}
+
   public Constructors(String s) {}
 
   public Constructors(BigDecimal bd) {}
