@@ -15,179 +15,258 @@
  */
 package com.datastax.oss.doclet;
 
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.ConstructorDoc;
-import com.sun.javadoc.DocErrorReporter;
-import com.sun.javadoc.ExecutableMemberDoc;
-import com.sun.javadoc.FieldDoc;
-import com.sun.javadoc.LanguageVersion;
-import com.sun.javadoc.MethodDoc;
-import com.sun.javadoc.Parameter;
-import com.sun.javadoc.ParameterizedType;
-import com.sun.javadoc.RootDoc;
-import com.sun.javadoc.Type;
-import java.util.HashSet;
+import com.sun.source.doctree.BlockTagTree;
+import com.sun.source.doctree.DocCommentTree;
+import com.sun.source.doctree.DocTree;
+import com.sun.source.util.DocTrees;
+import java.util.Locale;
 import java.util.Set;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
+import jdk.javadoc.doclet.Doclet;
+import jdk.javadoc.doclet.DocletEnvironment;
+import jdk.javadoc.doclet.Reporter;
 
-public class ApiPlumber {
-
+public class ApiPlumber implements Doclet {
   /** The command-line option to specify the packages that must not be leaked. */
   static final String FORBIDDEN_PACKAGE_OPTION = "-preventleak";
 
   /** The javadoc tag that causes the tool to ignore an element. */
   private static final String EXCLUDE_TAG_NAME = "leaks-private-api";
 
-  public static LanguageVersion languageVersion() {
-    return LanguageVersion.JAVA_1_5;
+  @Override
+  public String getName() {
+    return "ApiPlumber";
   }
 
-  public static int optionLength(String option) {
-    switch (option) {
-      case FORBIDDEN_PACKAGE_OPTION:
-        return 2;
-      default:
-        return 0;
+  @Override
+  public SourceVersion getSupportedSourceVersion() {
+    return SourceVersion.RELEASE_5;
+  }
+
+  @Override
+  public Set<? extends Option> getSupportedOptions() {
+    return Set.of(forbiddenPackageOption);
+  }
+
+  private Reporter reporter;
+  private ForbiddenPackageOption forbiddenPackageOption;
+  private int errorCount;
+
+  public ApiPlumber() {
+    this.forbiddenPackageOption = new ForbiddenPackageOption();
+  }
+
+  private static boolean hasTag(DocCommentTree docCommentTree, String tag) {
+    if (docCommentTree == null) {
+      return false;
     }
+    for (DocTree blockTag : docCommentTree.getBlockTags()) {
+      if (blockTag instanceof BlockTagTree && ((BlockTagTree) blockTag).getTagName().equals(tag)) {
+        return true;
+      }
+    }
+    return false;
   }
 
-  public static boolean validOptions(String options[][], DocErrorReporter reporter) {
-    if (parseForbiddenPackages(options).size() == 0) {
-      reporter.printError(
+  @Override
+  public void init(Locale locale, Reporter reporter) {
+    this.reporter = reporter;
+  }
+
+  @Override
+  public boolean run(DocletEnvironment environment) {
+    if (forbiddenPackageOption.getForbiddenPackages().isEmpty()) {
+      reporter.print(
+          Diagnostic.Kind.ERROR,
           String.format(
               "Usage: javadoc %1$s com.package1 [%1$s com.package2] " + "-doclet %2$s ...",
               FORBIDDEN_PACKAGE_OPTION, ApiPlumber.class.getName()));
       return false;
     }
-    return true;
-  }
 
-  public static boolean start(RootDoc root) {
-    return new ApiPlumber(root).start();
-  }
-
-  private static Set<String> parseForbiddenPackages(String[][] options) {
-    Set<String> result = new HashSet<>();
-    for (String[] option : options) {
-      if (option[0].equals(FORBIDDEN_PACKAGE_OPTION)) {
-        result.add(option[1]);
+    DocTrees docTrees = environment.getDocTrees();
+    Types typeUtils = environment.getTypeUtils();
+    for (Element el : environment.getIncludedElements()) {
+      // only check classes visible outside this package
+      if (!visibleOutsidePackage(el)) {
+        continue;
       }
-    }
-    return result;
-  }
 
-  private final RootDoc root;
-  private final Set<String> forbiddenPackages;
-  private int errorCount;
+      // check we have class or interface type
+      if (!el.getKind().isClass() && !el.getKind().isInterface()) {
+        continue;
+      }
 
-  private ApiPlumber(RootDoc root) {
-    this.root = root;
-    this.forbiddenPackages = parseForbiddenPackages(root.options());
-  }
+      TypeElement clazz = (TypeElement) el;
 
-  private boolean start() {
-    for (ClassDoc clazz : root.classes()) {
-      String classTypeName = clazz.qualifiedTypeName();
+      String classTypeName = qualifiedTypeName(clazz);
 
-      for (Type interfaceType : clazz.interfaceTypes()) {
-        if (clazz.tags(EXCLUDE_TAG_NAME).length == 0) {
-          String interfaceTypeName = interfaceType.qualifiedTypeName();
-          checkAllowed(
-              interfaceTypeName,
-              "Type %s leaks %s (as a parent interface)%n",
-              classTypeName,
-              interfaceTypeName);
+      // skip interfaces and superclasses if marked with java-doc tag
+      if (!hasTag(docTrees.getDocCommentTree(clazz), EXCLUDE_TAG_NAME)) {
+        // check interfaces
+        for (TypeMirror interfaceTypeMirror : clazz.getInterfaces()) {
+          checkSuperType(typeUtils, interfaceTypeMirror, classTypeName, "parent interface");
+        }
 
-          if (interfaceType instanceof ParameterizedType) {
-            for (Type type : interfaceType.asParameterizedType().typeArguments()) {
-              String typeArgumentName = type.qualifiedTypeName();
-              checkAllowed(
-                  typeArgumentName,
-                  "Type %s leaks %s (as a type argument of its parent interface %s)%n",
-                  classTypeName,
-                  typeArgumentName,
-                  interfaceTypeName);
-            }
+        // check superclass
+        TypeMirror superclassTypeMirror = clazz.getSuperclass();
+        if (superclassTypeMirror.getKind() != TypeKind.NONE) {
+          checkSuperType(typeUtils, superclassTypeMirror, classTypeName, "superclass");
+        }
+      }
+
+      // check contained fields, methods & constructors
+      for (Element enclosed : clazz.getEnclosedElements()) {
+        if (!visibleOutsidePackage(enclosed)
+            || hasTag(docTrees.getDocCommentTree(enclosed), EXCLUDE_TAG_NAME)) {
+          continue;
+        }
+
+        if (enclosed.getKind().isField()) {
+          VariableElement field = (VariableElement) enclosed;
+          TypeMirror fieldTypeMirror = field.asType();
+
+          if (isCheckableType(fieldTypeMirror)) {
+            String fieldTypeName = qualifiedTypeName(typeUtils, fieldTypeMirror);
+            checkAllowed(
+                fieldTypeName,
+                "Field %s.%s leaks %s%n",
+                classTypeName,
+                field.getSimpleName().toString(),
+                fieldTypeName);
           }
         }
-      }
 
-      Type superclassType = clazz.superclassType();
-      if (superclassType != null) {
-        String superclassTypeName = superclassType.qualifiedTypeName();
-        if (clazz.tags(EXCLUDE_TAG_NAME).length == 0) {
-          checkAllowed(
-              superclassTypeName,
-              "Type %s leaks %s (as a superclass)%n",
-              classTypeName,
-              superclassTypeName);
-
-          if (superclassType instanceof ParameterizedType) {
-            for (Type type : superclassType.asParameterizedType().typeArguments()) {
-              String typeArgumentName = type.qualifiedTypeName();
-              checkAllowed(
-                  typeArgumentName,
-                  "Type %s leaks %s (as a type argument of its superclass %s)%n",
-                  classTypeName,
-                  typeArgumentName,
-                  superclassTypeName);
-            }
+        if (enclosed.getKind() == ElementKind.METHOD) {
+          ExecutableElement method = (ExecutableElement) enclosed;
+          String methodName = method.getSimpleName().toString();
+          TypeMirror returnType = method.getReturnType();
+          if (isCheckableType(returnType)) {
+            String returnTypeName = qualifiedTypeName(typeUtils, returnType);
+            checkAllowed(
+                returnTypeName,
+                "Method %s.%s leaks %s (as its return type)%n",
+                classTypeName,
+                methodName,
+                returnTypeName);
           }
+
+          checkMethodParameters(typeUtils, method, classTypeName, "Method");
         }
-      }
 
-      for (FieldDoc field : clazz.fields()) {
-        if (field.tags(EXCLUDE_TAG_NAME).length == 0) {
-          String fieldTypeName = field.type().qualifiedTypeName();
-          checkAllowed(fieldTypeName, "Field %s leaks %s%n", field.qualifiedName(), fieldTypeName);
-        }
-      }
-
-      for (MethodDoc method : clazz.methods()) {
-        if (method.tags(EXCLUDE_TAG_NAME).length == 0) {
-          String methodName = method.qualifiedName();
-          String returnTypeName = method.returnType().qualifiedTypeName();
-          checkAllowed(
-              returnTypeName,
-              "Method %s leaks %s (as its return type)%n",
-              methodName,
-              returnTypeName);
-
-          checkParametersAllowed(method);
-        }
-      }
-
-      for (ConstructorDoc constructor : clazz.constructors()) {
-        if (constructor.tags(EXCLUDE_TAG_NAME).length == 0) {
-          checkParametersAllowed(constructor);
+        if (enclosed.getKind() == ElementKind.CONSTRUCTOR) {
+          checkMethodParameters(
+              typeUtils, (ExecutableElement) enclosed, classTypeName, "Constructor");
         }
       }
     }
     if (errorCount > 0) {
-      System.err.printf("%nFound %d error%s%n", errorCount, errorCount == 1 ? "" : "s");
+      reporter.print(
+          Diagnostic.Kind.ERROR,
+          String.format("%nFound %d error%s%n", errorCount, errorCount == 1 ? "" : "s"));
     }
     return errorCount == 0;
   }
 
+  private static String qualifiedTypeName(Element el) {
+    if (el instanceof TypeElement) {
+      return ((TypeElement) el).getQualifiedName().toString();
+    }
+
+    // we only want to return types for TypeElements, if we got this far is a bug in the type checking logic
+    throw new RuntimeException(
+        String.format("cannot get qualified type name for non-TypeElement '%s'", el));
+  }
+
+  private String qualifiedTypeName(Types typeUtils, TypeMirror typeMirror) {
+    // for arrays we want to get the name of the component type instead
+    if (typeMirror.getKind() == TypeKind.ARRAY) {
+      return qualifiedTypeName(typeUtils, ((ArrayType) typeMirror).getComponentType()) + "[]";
+    }
+    return qualifiedTypeName(typeUtils.asElement(typeMirror));
+  }
+
   private void checkAllowed(String typeName, String errorFormat, Object... errorArguments) {
-    for (String forbiddenPackage : forbiddenPackages) {
+    for (String forbiddenPackage : forbiddenPackageOption.getForbiddenPackages()) {
       if (typeName.startsWith(forbiddenPackage)) {
-        System.err.printf(errorFormat, errorArguments);
+        reporter.print(Diagnostic.Kind.ERROR, String.format(errorFormat, errorArguments));
         errorCount += 1;
       }
     }
   }
 
-  private void checkParametersAllowed(ExecutableMemberDoc executable) {
-    String name = executable.qualifiedName();
-    for (Parameter parameter : executable.parameters()) {
-      String parameterTypeName = parameter.type().qualifiedTypeName();
+  private void checkSuperType(
+      Types typeUtils, TypeMirror superTypeMirror, String classTypeName, String relationship) {
+    String interfaceTypeName = qualifiedTypeName(typeUtils, superTypeMirror);
+    checkAllowed(
+        interfaceTypeName,
+        "Type %s leaks %s (as a %s)%n",
+        classTypeName,
+        interfaceTypeName,
+        relationship);
+
+    for (TypeMirror argumentTypeMirror : ((DeclaredType) superTypeMirror).getTypeArguments()) {
+      if (!isCheckableType(argumentTypeMirror)) {
+        continue;
+      }
+      String typeArgumentName = qualifiedTypeName(typeUtils, argumentTypeMirror);
+      checkAllowed(
+          typeArgumentName,
+          "Type %s leaks %s (as a type argument of its %s %s)%n",
+          classTypeName,
+          typeArgumentName,
+          relationship,
+          interfaceTypeName);
+    }
+  }
+
+  private void checkMethodParameters(
+      Types typeUtils, ExecutableElement method, String classTypeName, String methodKind) {
+    String methodName = method.getSimpleName().toString();
+    for (VariableElement parameter : method.getParameters()) {
+      TypeMirror parameterTypeMirror = parameter.asType();
+      if (!isCheckableType(parameterTypeMirror)) {
+        continue;
+      }
+
+      String parameterTypeName = qualifiedTypeName(typeUtils, parameterTypeMirror);
       checkAllowed(
           parameterTypeName,
-          "%s %s leaks %s (as parameter '%s')%n",
-          executable instanceof ConstructorDoc ? "Constructor" : "Method",
-          name,
+          "%s %s.%s leaks %s (as parameter '%s')%n",
+          methodKind,
+          classTypeName,
+          methodName,
           parameterTypeName,
-          parameter.name());
+          parameter.getSimpleName().toString());
     }
+  }
+
+  private boolean isCheckableType(TypeMirror type) {
+    TypeKind kind = type.getKind();
+    if (kind == TypeKind.VOID || kind.isPrimitive() || kind == TypeKind.TYPEVAR) {
+      return false;
+    }
+
+    if (kind == TypeKind.ARRAY) {
+      return isCheckableType(((ArrayType) type).getComponentType());
+    }
+    return true;
+  }
+
+  private boolean visibleOutsidePackage(Element el) {
+    return el.getModifiers().contains(Modifier.PUBLIC)
+        || el.getModifiers().contains(Modifier.PROTECTED);
   }
 }

@@ -21,6 +21,10 @@ import java.util.function.Function;
 
 public class Interfaces {
 
+  public interface Base<T> {}
+
+  public class Implementation<T> implements Base<T> {}
+
   public class StringIdentity implements Function<String, String> {
     @Override
     public String apply(String s) {

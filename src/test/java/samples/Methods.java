@@ -19,6 +19,12 @@ import java.math.BigDecimal;
 
 public interface Methods {
 
+  int returnsPrimitive();
+
+  int[] returnsArrayOfPrimitive();
+
+  String[] returnsArrayOfReference();
+
   BigDecimal leaksReturnType();
 
   void leaksParameter(String key, BigDecimal value);
@@ -28,4 +34,9 @@ public interface Methods {
 
   /** @leaks-private-api */
   void annotatedParameter(String key, BigDecimal value);
+
+  BigDecimal[] leaksArrayOfReturnType();
+
+  /** @leaks-private-api */
+  BigDecimal[] annotatedArrayOfReturnType();
 }

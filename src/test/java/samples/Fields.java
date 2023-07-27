@@ -19,6 +19,7 @@ import java.math.BigInteger;
 import java.util.UUID;
 
 public class Fields {
+  public int primitive;
   public String string;
 
   public BigInteger bigInteger;
