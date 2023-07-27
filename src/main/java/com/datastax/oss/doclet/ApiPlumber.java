@@ -185,7 +185,8 @@ public class ApiPlumber implements Doclet {
       return ((TypeElement) el).getQualifiedName().toString();
     }
 
-    // we only want to return types for TypeElements, if we got this far is a bug in the type checking logic
+    // we only want to return types for TypeElements, if we got this far is a bug in the type
+    // checking logic
     throw new RuntimeException(
         String.format("cannot get qualified type name for non-TypeElement '%s'", el));
   }
