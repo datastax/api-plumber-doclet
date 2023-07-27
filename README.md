@@ -57,3 +57,7 @@ You can ignore elements with a javadoc tag:
 /** @leaks-private-api */
 public com.example.internal.InternalType myField;
 ```
+
+Note: due to breaking changes in the Doclet API, 2.x branch and releases 2.0.0+ require minimum of Java 9. The 1.x branch and 1.0.0 release support Java 8 and lower only. This is the case for both development in this repo, and for adopters using the `api-plumber-doclet` in their own projects.
+
+For more info see the [OpenJDK intro to the new API](https://openjdk.org/groups/compiler/using-new-doclet.html) and the [jdk.javadoc.doclet documentation](https://docs.oracle.com/javase%2F9%2Fdocs%2Fapi%2F%2F/jdk/javadoc/doclet/package-summary.html).
